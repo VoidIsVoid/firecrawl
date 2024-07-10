@@ -1,10 +1,11 @@
 name: Docker Image CI
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'docker tag'
+        required: true
 
 jobs:
   build:
@@ -14,12 +15,12 @@ jobs:
     - name: Build the Docker image
       run: export DOCKER_TAG=$(date +%s)
     - name: build api
-      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/firecrawl:$DOCKER_TAG apps/api
+      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/firecrawl:${{ github.event.inputs.flutter_version }} apps/api
     - name: build playwright
-      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/firecrawl-playwright:$DOCKER_TAG apps/firecrawl-playwright
+      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/firecrawl-playwright:${{ github.event.inputs.flutter_version }} apps/firecrawl-playwright
     - name: login to docker.io
       run: docker login registry-1.docker.io -u ${{ secrets.DOCKER_USERNAME }} -p${{ secrets.DOCKER_PASSWORD }}
     - name: push api
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/firecrawl:$DOCKER_TAG
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/firecrawl:${{ github.event.inputs.flutter_version }}
     - name: push playwright
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/firecrawl-playwright:$DOCKER_TAG
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/firecrawl-playwright:${{ github.event.inputs.flutter_version }}
