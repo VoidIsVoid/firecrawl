@@ -1,0 +1,25 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: export DOCKER_TAG=$(date +%s)
+    - name: build api
+      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/firecrawl:$DOCKER_TAG apps/api
+    - name: build playwright
+      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/firecrawl-playwright:$DOCKER_TAG apps/firecrawl-playwright
+    - name: login to docker.io
+      value: docker login registry-1.docker.io -u ${{ secrets.DOCKER_USERNAME }} -p${{ secrets.DOCKER_PASSWORD }}
+    - name: push api
+      value: docker push ${{ secrets.DOCKER_USERNAME }}/firecrawl:$DOCKER_TAG
+    - name: push playwright
+      value: docker push ${{ secrets.DOCKER_USERNAME }}/firecrawl-playwright:$DOCKER_TAG
