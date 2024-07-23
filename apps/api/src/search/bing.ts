@@ -13,13 +13,13 @@ export async function bing_search(q, options: {
     num_results: number;
     page?: number;
 }): Promise<SearchResult[]> {
-  let data = JSON.stringify({
+  let data = {
     q,
     cc: "zh",
     count: options.num_results,
     textDecorations: true,
     textFormat: "HTML",
-  });
+  };
 
   let config = {
     method: "GET",
