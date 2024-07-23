@@ -1,6 +1,7 @@
 import { SearchResult } from "../../src/lib/entities";
 import { google_search } from "./googlesearch";
 import { serper_search } from "./serper";
+import { bing_search } from "./bing";
 
 
 
@@ -31,8 +32,10 @@ export async function search({
   timeout?: number;
 }) : Promise<SearchResult[]> {
   try {
-    if (process.env.SERPER_API_KEY ) {
+    if (process.env.SERPER_API_KEY) {
       return await serper_search(query, {num_results, tbs, filter, lang, country, location});
+    }else if (process.env.BING_API_KEY) {
+      return await bing_search(query, {num_results, tbs, filter, lang, country, location});
     }
     return await google_search(
       query,
