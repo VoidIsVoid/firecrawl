@@ -3,11 +3,14 @@ import { supabase_service } from "../supabase";
 import { FirecrawlJob } from "../../types";
 import { posthog } from "../posthog";
 import "dotenv/config";
+import { Logger } from "../../lib/logger";
+import { configDotenv } from "dotenv";
+configDotenv();
 
 export async function logJob(job: FirecrawlJob) {
   try {
-    // Only log jobs in production
-    if (process.env.ENV !== "production") {
+    const useDbAuthentication = process.env.USE_DB_AUTHENTICATION === 'true';
+    if (!useDbAuthentication) {
       return;
     }
 
@@ -25,6 +28,7 @@ export async function logJob(job: FirecrawlJob) {
       .from("firecrawl_jobs")
       .insert([
         {
+          job_id: job.job_id ? job.job_id : null,
           success: job.success,
           message: job.message,
           num_docs: job.num_docs,
@@ -38,10 +42,12 @@ export async function logJob(job: FirecrawlJob) {
           origin: job.origin,
           extractor_options: job.extractor_options,
           num_tokens: job.num_tokens,
+          retry: !!job.retry,
+          crawl_id: job.crawl_id,
         },
       ]);
 
-    if (process.env.POSTHOG_API_KEY) {
+    if (process.env.POSTHOG_API_KEY && !job.crawl_id) {
       let phLog = {
         distinctId: "from-api", //* To identify this on the group level, setting distinctid to a static string per posthog docs: https://posthog.com/docs/product-analytics/group-analytics#advanced-server-side-only-capturing-group-events-without-a-user
         ...(job.team_id !== "preview" && {
@@ -61,14 +67,15 @@ export async function logJob(job: FirecrawlJob) {
           origin: job.origin,
           extractor_options: job.extractor_options,
           num_tokens: job.num_tokens,
+          retry: job.retry,
         },
       };
       posthog.capture(phLog);
     }
     if (error) {
-      console.error("Error logging job:\n", error);
+      Logger.error(`Error logging job: ${error.message}`);
     }
   } catch (error) {
-    console.error("Error logging job:\n", error);
+    Logger.error(`Error logging job: ${error.message}`);
   }
 }

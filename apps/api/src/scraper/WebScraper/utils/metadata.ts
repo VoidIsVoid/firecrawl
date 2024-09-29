@@ -1,4 +1,6 @@
 import { CheerioAPI } from "cheerio";
+import { Logger } from "../../../lib/logger";
+
 interface Metadata {
   title?: string;
   description?: string;
@@ -73,9 +75,7 @@ export function extractMetadata(soup: CheerioAPI, url: string): Metadata {
     description = soup('meta[name="description"]').attr("content") || null;
     
     // Assuming the language is part of the URL as per the regex pattern
-    const pattern = /([a-zA-Z]+-[A-Z]{2})/;
-    const match = pattern.exec(url);
-    language = match ? match[1] : null;
+    language = soup('html').attr('lang') || null;
 
     keywords = soup('meta[name="keywords"]').attr("content") || null;
     robots = soup('meta[name="robots"]').attr("content") || null;
@@ -105,7 +105,7 @@ export function extractMetadata(soup: CheerioAPI, url: string): Metadata {
     dctermsCreated = soup('meta[name="dcterms.created"]').attr("content") || null;
 
   } catch (error) {
-    console.error("Error extracting metadata:", error);
+    Logger.error(`Error extracting metadata: ${error}`);
   }
 
   return {

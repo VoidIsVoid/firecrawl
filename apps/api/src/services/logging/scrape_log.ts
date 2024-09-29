@@ -2,11 +2,19 @@ import "dotenv/config";
 import { ScrapeLog } from "../../types";
 import { supabase_service } from "../supabase";
 import { PageOptions } from "../../lib/entities";
+import { Logger } from "../../lib/logger";
+import { configDotenv } from "dotenv";
+configDotenv();
 
 export async function logScrape(
   scrapeLog: ScrapeLog,
   pageOptions?: PageOptions
 ) {
+  const useDbAuthentication = process.env.USE_DB_AUTHENTICATION === 'true';
+  if (!useDbAuthentication) {
+    Logger.debug("Skipping logging scrape to Supabase");
+    return;
+  }
   try {
     // Only log jobs in production
     // if (process.env.ENV !== "production") {
@@ -32,16 +40,16 @@ export async function logScrape(
         retried: scrapeLog.retried,
         error_message: scrapeLog.error_message,
         date_added: new Date().toISOString(),
-        html: scrapeLog.html,
+        html: "Removed to save db space",
         ipv4_support: scrapeLog.ipv4_support,
         ipv6_support: scrapeLog.ipv6_support,
       },
     ]);
 
     if (error) {
-      console.error("Error logging proxy:\n", error);
+      Logger.error(`Error logging proxy:\n${JSON.stringify(error)}`);
     }
   } catch (error) {
-    console.error("Error logging proxy:\n", error);
+    Logger.error(`Error logging proxy:\n${JSON.stringify(error)}`);
   }
 }

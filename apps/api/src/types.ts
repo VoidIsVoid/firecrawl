@@ -1,3 +1,4 @@
+import { AuthCreditUsageChunk } from "./controllers/v1/types";
 import { ExtractorOptions, Document, DocumentUrl } from "./lib/entities";
 
 type Mode = "crawl" | "single_urls" | "sitemap";
@@ -25,8 +26,14 @@ export interface WebScraperOptions {
   mode: Mode;
   crawlerOptions: any;
   pageOptions: any;
+  extractorOptions?: any;
   team_id: string;
   origin?: string;
+  crawl_id?: string;
+  sitemapped?: boolean;
+  webhook?: string;
+  v1?: boolean;
+  is_scrape?: boolean;
 }
 
 export interface RunWebScraperParams {
@@ -34,11 +41,14 @@ export interface RunWebScraperParams {
   mode: Mode;
   crawlerOptions: any;
   pageOptions?: any;
+  extractorOptions?: any;
   inProgress: (progress: any) => void;
-  onSuccess: (result: any) => void;
+  onSuccess: (result: any, mode: string) => void;
   onError: (error: Error) => void;
   team_id: string;
   bull_job_id: string;
+  priority?: number;
+  is_scrape?: boolean;
 }
 
 export interface RunWebScraperResult {
@@ -48,6 +58,7 @@ export interface RunWebScraperResult {
 }
 
 export interface FirecrawlJob {
+  job_id?: string;
   success: boolean;
   message: string;
   num_docs: number;
@@ -61,6 +72,8 @@ export interface FirecrawlJob {
   origin: string;
   extractor_options?: ExtractorOptions,
   num_tokens?: number,
+  retry?: boolean,
+  crawl_id?: string;
 }
 
 export interface FirecrawlScrapeResponse {
@@ -97,6 +110,7 @@ export enum RateLimiterMode {
   Scrape = "scrape",
   Preview = "preview",
   Search = "search",
+  Map = "map",
 
 }
 
@@ -105,7 +119,9 @@ export interface AuthResponse {
   team_id?: string;
   error?: string;
   status?: number;
-  plan?: string;
+  api_key?: string;
+  plan?: PlanType;
+  chunk?: AuthCreditUsageChunk;
 }
   
 
@@ -129,3 +145,17 @@ export type ScrapeLog = {
   ipv4_support?: boolean | null;
   ipv6_support?: boolean | null;
 };
+
+export type PlanType = 
+  | "starter"
+  | "standard"
+  | "scale"
+  | "hobby"
+  | "standardnew"
+  | "growth"
+  | "growthdouble"
+  | "free"
+  | "";
+
+
+export type WebhookEventType = "crawl.page" | "crawl.started" | "crawl.completed" | "crawl.failed";
