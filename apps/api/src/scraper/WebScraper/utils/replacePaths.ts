@@ -67,6 +67,19 @@ export const replaceImgPathsWithAbsolutePaths = (documents: Document[]): Documen
               imageUrl = new URL(imageUrl, document.metadata.sourceURL).toString();
             }
           }
+        } else {
+          if (imageUrl.startsWith("data:image/svg+xml")) {
+            if (altText) {
+              // 有图片说明, 保留图片说明
+              imageUrl = ''              
+            } else {
+              // 没有图片说明的svg图片, 删除
+              document.content = document.content.replace(
+                image,
+                ''
+              );
+            }
+          }
         }
 
         document.content = document.content.replace(
